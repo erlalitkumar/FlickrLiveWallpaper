@@ -31,8 +31,16 @@ public class GeoNamesAPI {
         // return new Pair<Location, String>(location,
         // getNearestPlaceName(df.format(location.getLatitude()),
         // df.format(location.getLongitude()),httpClient));
-        return new Pair<Location, String>(location, getNearestPlaceName(df.format(location
-                .getLatitude()), df.format(location.getLongitude())));
+        Pair<Location, String> pair;
+        try{
+            pair = new Pair<Location, String>(location, getNearestPlaceName(df.format(location
+                    .getLatitude()), df.format(location.getLongitude())));
+        }catch(NullPointerException e){
+            throw new ConnectException();
+        }
+        
+        
+        return pair;
     }
 
     private String getNearestPlaceName(String lat, String lon) throws ConnectException {
