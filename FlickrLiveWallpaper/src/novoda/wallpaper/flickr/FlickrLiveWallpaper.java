@@ -3,11 +3,13 @@ package novoda.wallpaper.flickr;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.List;
 
 import novoda.net.FlickrApi;
 import novoda.net.GeoNamesAPI;
-import novoda.wallpaper.flickr.models.Photo;
+import android.app.ActivityManager;
 import android.app.WallpaperManager;
+import android.app.ActivityManager.RecentTaskInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -56,55 +58,36 @@ public class FlickrLiveWallpaper extends WallpaperService {
         return new FlickrEngine();
     }
 
-    @Override
-    public void onCreate() {
-        WallpaperManager instance = WallpaperManager.getInstance(this);
-        Log.i(TAG, "on create" + instance);
-        super.onCreate();
-    }
-
     private static boolean drawingWallpaper = false;
 
     class FlickrEngine extends Engine implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-        private SharedPreferences mPrefs;
-
-        private String imgUrl;
-
-        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-            if (key != null) {
-                Log.i(TAG, "Shared Preferences changed: " + key);
-                mHandler.post(mDrawWallpaper);
-            }
-        }
-
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
-            Log.i(TAG, "OnCreate");
-
             super.onCreate(surfaceHolder);
+            
             Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
-
+            
             mPrefs = FlickrLiveWallpaper.this.getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
             mPrefs.registerOnSharedPreferenceChangeListener(this);
             onSharedPreferenceChanged(mPrefs, null);
-
+        
             if (!mPrefs.contains(PREF_TAP_TYPE)) {
                 Editor edit = mPrefs.edit();
                 edit.putString(PREF_TAP_TYPE, PREF_TAP_TYPE_VISIT);
                 edit.commit();
             }
-
+        
             if (!mPrefs.contains(PREF_DISPLAY_TYPE)) {
                 Editor edit = mPrefs.edit();
                 edit.putString(PREF_DISPLAY_TYPE, PREF_DISPLAY_TYPE_FRAME);
                 edit.commit();
             }
-
+        
             displayWidth = dm.getWidth();
             displayHeight = dm.getHeight();
             displayMiddleX = displayWidth * 0.5f;
-
+        
             txtPaint = new Paint();
             txtPaint.setAntiAlias(true);
             txtPaint.setColor(Color.WHITE);
@@ -114,14 +97,14 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     "fonts/ArnoProRegular10pt.otf");
             txtPaint.setTypeface(typeFace);
             txtPaint.setTextAlign(Paint.Align.CENTER);
-
+        
             final Bitmap bg = BitmapFactory.decodeResource(getResources(),
                     R.drawable.bg_wallpaper_pattern);
-
+        
             BitmapShader mShader1 = new BitmapShader(bg, Shader.TileMode.REPEAT,
                     Shader.TileMode.REPEAT);
             bg.recycle();
-
+        
             bgPaint = new Paint();
             bgPaint.setShader(mShader1);
         }
@@ -163,9 +146,9 @@ public class FlickrLiveWallpaper extends WallpaperService {
             Intent intent = null;
             Log.i(TAG, "An action going on" + action);
             if (action.equals(WallpaperManager.COMMAND_TAP)) {
-
+        
                 String tappingOpt = mPrefs.getString(PREF_TAP_TYPE, PREF_TAP_TYPE_VISIT);
-
+        
                 if (tappingOpt.equals(PREF_TAP_TYPE_REFRESH) || errorShown) {
                     errorShown = false;
                     mHandler.post(mDrawWallpaper);
@@ -176,8 +159,15 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     startActivity(intent);
                 }
             }
-
+        
             return super.onCommand(action, x, y, z, extras, resultRequested);
+        }
+
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+            if (key != null) {
+                Log.i(TAG, "Shared Preferences changed: " + key);
+                mHandler.post(mDrawWallpaper);
+            }
         }
 
         private void requestAndCacheImage(Location location, String placeName)
@@ -259,7 +249,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
         private Bitmap scaleImage(Bitmap bitmap, int width, int height) {
             final int bitmapWidth = bitmap.getWidth();
             final int bitmapHeight = bitmap.getHeight();
-            final float scale;
             final int scaledWidth;
             final int scaledHeight;
 
@@ -267,8 +256,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     .equals(PREF_DISPLAY_TYPE_FRAME);
 
             if (FRAMED) {
-                scale = Math.min((float)width / (float)bitmapWidth, (float)height
-                        / (float)bitmapHeight);
 
                 if (bitmapWidth > bitmapHeight) {
                     scaledWidth = 343;
@@ -287,20 +274,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
 
                 scaledWidth = (int)(bitmapWidth * scaledX);
                 scaledHeight = (int)(bitmapHeight * scaledY);
-            }
-
-            /*
-             * Work out the Top Margin to align the image in the middle of the
-             * screen with a slightly larger bottom gutter for framing
-             * screenDivisions = totalScreenHeight/BitmapHeight cachedTopMargin
-             * = screenDivisions - (BitmapHeight*0.5)
-             */
-            if (FRAMED) {
-                final float screenDividedByPic = Math
-                        .min((float)displayHeight, (float)scaledHeight);
-                cachedImgTopMargin = Math.round((screenDividedByPic - (float)scaledHeight * 0.5));
-            } else {
-                cachedImgTopMargin = 0;
             }
 
             Log.d(TAG, "Scaling Bitmap (height x width): Orginal[" + bitmapHeight + "x"
@@ -370,7 +343,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
          * Present information designed to inform the user about a behaviour
          * which is not erroneous.
          */
-        public void drawScalingImageNotification(String string) {
+        private void drawScalingImageNotification(String string) {
             Log.i(TAG, string);
             float x = displayMiddleX;
             float y = 180;
@@ -528,30 +501,39 @@ public class FlickrLiveWallpaper extends WallpaperService {
             public void run() {
                 if (!drawingWallpaper) {
                     if (currentlyVisibile) {
-                        Log.i(TAG, "Request to refresh Wallpaper");
                         drawingWallpaper = true;
-                        drawInitialLoadingNotification();
-                        // loadMockImages();
+                        (new Thread() {
+                            public void run() {
+                                retrieveNewImage();
+                                drawingWallpaper = false;
+                            }
+                          }
 
-                        try {
-                            location = geoNamesAPI.obtainLocation(getRecentLocation());
-                        } catch (ConnectException e) {
-                            location = null;
-                            drawErrorNotification("Could not connect to the internet to find your location");
-                        }
-
-                        if (location != null) {
-                            requestAndDrawImage();
-                            lastSync = System.currentTimeMillis();
-                        }
-
-                        drawingWallpaper = false;
-                        Log.i(TAG, "Finished Drawing Wallpaper");
+                            ).start();
                     } else {
                         Log.w(TAG, "Queuing a draw request");
                         mHandler.postDelayed(mDrawWallpaper, 600);
                     }
                 }
+            }
+
+            private void retrieveNewImage() {
+                Log.i(TAG, "Request to refresh Wallpaper");
+                drawInitialLoadingNotification();
+                // loadMockImages();
+
+                try {
+                    location = geoNamesAPI.obtainLocation(getRecentLocation());
+                } catch (ConnectException e) {
+                    location = null;
+                    drawErrorNotification("Could not connect to the internet to find your location");
+                }
+
+                if (location != null) {
+                    requestAndDrawImage();
+                    lastSync = System.currentTimeMillis();
+                }
+                Log.i(TAG, "Finished Drawing Wallpaper");
             }
 
             private void requestAndDrawImage() {
@@ -568,7 +550,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
                         }
                     } else {
                         drawScalingImageNotification("Stretching images across dashboards");
-
+                        
                         try {
                             setWallpaper(cachedBitmap);
                         } catch (IOException e) {
@@ -595,7 +577,35 @@ public class FlickrLiveWallpaper extends WallpaperService {
 
         private final Handler mHandler = new Handler();
 
-        private static final String PREF_SCALE_TYPE_FULL = "full";
+        private SharedPreferences mPrefs;
+        
+        private boolean showingSettings;
+
+        private String imgUrl;
+
+        private int displayWidth;
+
+        private int displayHeight;
+
+        private long lastSync = 0;
+
+        private boolean currentlyVisibile = false;
+
+        private Paint txtPaint;
+
+        private GeoNamesAPI geoNamesAPI = new GeoNamesAPI();
+
+        private final FlickrApi flickrApi = new FlickrApi();
+
+        private float displayMiddleX;
+
+        private Pair<Location, String> location;
+
+        private Paint bgPaint;
+
+        private Bitmap frame;
+
+        private boolean errorShown = false;
 
         private static final String PREF_DISPLAY_TYPE_FRAME = "middle";
 
@@ -606,32 +616,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
         private static final String PREF_TAP_TYPE_REFRESH = "refeshOnClick";
 
         private static final String PREF_TAP_TYPE_VISIT = "vistOnClick";
-
-        private int displayWidth;
-
-        private int displayHeight;
-
-        private long lastSync = 0;
-
-        private long cachedImgTopMargin = 0;
-
-        private boolean currentlyVisibile = false;
-
-        private Paint txtPaint;
-
-        private GeoNamesAPI geoNamesAPI = new GeoNamesAPI();
-
-        private float displayMiddleX;
-
-        private Pair<Location, String> location;
-
-        private Paint bgPaint;
-
-        private Bitmap frame;
-
-        private final FlickrApi flickrApi = new FlickrApi();
-
-        private boolean errorShown = false;
 
         public static final int LANDSCAPE_FRAME_LEFT_MARGIN = 24;
 

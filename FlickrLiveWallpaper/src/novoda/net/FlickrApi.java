@@ -24,62 +24,32 @@ import android.util.Pair;
 
 public class FlickrApi {
 
-    private static final String TAG = FlickrApi.class.getSimpleName();
+    public Pair<Bitmap, String> retrievePhoto(boolean fRAMED, Location location, String placeName) {
+        // List<Photo> list = getPhotosFromExactLocation(location);
+        List<Photo> photos = photosFromApproxLocation(placeName, location);
+        chosenPhoto = choosePhoto(photos);
 
-    WebServiceMgr webSrvMgr = new WebServiceMgr();
-    
-    private final Random randomWheel = new Random();
+        Bitmap cachedBitmap = null;
+        if (chosenPhoto != null) {
 
-    private DecimalFormat df = new DecimalFormat("#.######");
-    
-    private final PhotoSearch photoSearch = new PhotoSearch();
+            URL url = null;
+            try {
+                if (fRAMED) {
+                    url = new URL(chosenPhoto.getUrl());
+                } else {
+                    Log.i(TAG, "Image is not framed so it will be a large download");
+                    url = new URL(chosenPhoto.getUrl(Photo.ORIGINAL_IMG_URL));
+                }
+                Log.d(TAG, "Requesting static image from Flickr=[" + url + "]");
 
-    private Photo cachedPhoto;
-    
-    /*
-     * Chosen an image from within a list of suitable photo specs.
-     */
-    public Photo choosePhoto(List<Photo> photos) {
-        Log.v(TAG, "Choosing a photo from amoungst those with URLs");
-
-        for (int i = 0; i < photos.size(); i++) {
-            if (photos.get(i).origResImg_url == null || photos.get(i).medResImg_url == null
-                    || photos.get(i).smallResImg_url == null) {
-                photos.remove(i);
+            } catch (MalformedURLException error) {
+                error.printStackTrace();
             }
-        }
-        if (photos.size() > 1) {
-            cachedPhoto = photos.get(randomWheel.nextInt(photos.size() - 1));
-            return cachedPhoto;
-        }
-        return photos.get(0);
-    }
 
-    /*
-     * Establish current place name via the GeoName API Query Use place name
-     * to establish if photos are available as a tag on Flickr Requery if
-     * photos can be divided into pages (to help randomness of results)
-     */
-    public List<Photo> getPhotosFromApproxLocation(String placeNameTag, Location location) {
-
-        // Add random to ensure varying results
-        photoSearch.with("accuracy", "11");
-        photoSearch.with("tags", placeNameTag);
-        photoSearch.with("sort", "interestingness-desc");
-        photoSearch.with("media", "photos");
-        photoSearch.with("extras", "url_s,url_m,original_format,path_alias,url_sq,url_t");
-        photoSearch.with("per_page", "50");
-
-        List<Photo> list = photoSearch.fetchStructuredDataList();
-
-        if (list.size() > 1) {
-            int square = (int)Math.sqrt(list.size());
-            photoSearch.with("per_page", "" + square);
-            photoSearch.with("page", "" + randomWheel.nextInt(square - 1));
-            list = photoSearch.fetchStructuredDataList();
+            cachedBitmap = retrieveBitmap(url);
         }
 
-        return list;
+        return new Pair<Bitmap, String>(cachedBitmap, chosenPhoto.getFullFlickrUrl());
     }
 
     public Bitmap retrieveBitmap(URL photoUrl) {
@@ -102,7 +72,53 @@ public class FlickrApi {
 
         return bitmap;
     }
-    
+
+    /*
+     * Establish current place name via the GeoName API Query Use place name to
+     * establish if photos are available as a tag on Flickr Requery if photos
+     * can be divided into pages (to help randomness of results)
+     */
+    private List<Photo> photosFromApproxLocation(String placeNameTag, Location location) {
+
+        // Add random to ensure varying results
+        photoSearch.with("accuracy", "11");
+        photoSearch.with("tags", placeNameTag);
+        photoSearch.with("sort", "interestingness-desc");
+        photoSearch.with("media", "photos");
+        photoSearch.with("extras", "url_s,url_m,original_format,path_alias,url_sq,url_t");
+        photoSearch.with("per_page", "50");
+
+        List<Photo> list = photoSearch.fetchStructuredDataList();
+
+        if (list.size() > 1) {
+            int square = (int)Math.sqrt(list.size());
+            photoSearch.with("per_page", "" + square);
+            photoSearch.with("page", "" + randomWheel.nextInt(square - 1));
+            list = photoSearch.fetchStructuredDataList();
+        }
+
+        return list;
+    }
+
+    /*
+     * Chosen an image from within a list of suitable photo specs.
+     */
+    private Photo choosePhoto(List<Photo> photos) {
+        Log.v(TAG, "Choosing a photo from amoungst those with URLs");
+
+        for (int i = 0; i < photos.size(); i++) {
+            if (photos.get(i).origResImg_url == null || photos.get(i).medResImg_url == null
+                    || photos.get(i).smallResImg_url == null) {
+                photos.remove(i);
+            }
+        }
+        if (photos.size() > 1) {
+            chosenPhoto = photos.get(randomWheel.nextInt(photos.size() - 1));
+            return chosenPhoto;
+        }
+        return photos.get(0);
+    }
+
     /*
      * Return Flickr photos based on the exact user's location
      */
@@ -125,8 +141,7 @@ public class FlickrApi {
         photoSearch.with("lat", "" + df.format(latitude + d));
         photoSearch.with("lon", "" + df.format(longitude + d));
         photoSearch.with("accuracy", "1");
-        photoSearch.with("tags", getPeriodOfDay(new GregorianCalendar()
-                .get(Calendar.HOUR_OF_DAY)));
+        photoSearch.with("tags", getPeriodOfDay(new GregorianCalendar().get(Calendar.HOUR_OF_DAY)));
         photoSearch.with("sort", "interestingness-desc");
         photoSearch.with("media", "photos");
         photoSearch.with("extras", "url_m");
@@ -145,10 +160,9 @@ public class FlickrApi {
 
         return list;
     }
-    
+
     /**
-     * Returns a human readable tag which will be used with the search
-     * query.
+     * Returns a human readable tag which will be used with the search query.
      * 
      * @param 24h clock format
      * @return Period of Day
@@ -176,42 +190,16 @@ public class FlickrApi {
         return "city";
     }
 
-    public Pair<Bitmap, String> retrievePhoto(boolean fRAMED, Location location, String placeName) {
-        // List<Photo> list = getPhotosFromExactLocation(location);
-        List<Photo> photos = getPhotosFromApproxLocation(placeName, location);
-        cachedPhoto = choosePhoto(photos);
+    private static final String TAG = FlickrApi.class.getSimpleName();
 
-        Bitmap cachedBitmap = null;
-        if (cachedPhoto != null) {
-            cachedBitmap = retrievePhoto(cachedPhoto, fRAMED);
-        }
-        
-        return new Pair<Bitmap, String>(cachedBitmap, cachedPhoto.getFullFlickrUrl());
-    }
-    
-    /*
-     * Using existing details of a photos specifications obtained from the
-     * Flickr API, request the binary stream from a HTTP connection
-     */
-    private Bitmap retrievePhoto(Photo photo, boolean FRAMED) throws IllegalStateException {
-        URL photoUrl = null;
-        try {
-            if (FRAMED) {
-                photoUrl = new URL(photo.getUrl());
-            } else {
-                Log.i(TAG, "Image is not framed so it will be a large download");
-                photoUrl = new URL(photo.getUrl(Photo.ORIGINAL_IMG_URL));
-            }
+    private final WebServiceMgr webSrvMgr = new WebServiceMgr();
 
-            Log.d(TAG, "Requesting static image from Flickr=[" + photoUrl + "]");
+    private static final Random randomWheel = new Random();
 
-        } catch (MalformedURLException error) {
-            error.printStackTrace();
-        }
+    private static final DecimalFormat df = new DecimalFormat("#.######");
 
-        Bitmap bitmap = null;
-        bitmap = retrieveBitmap(photoUrl);
+    private static final PhotoSearch photoSearch = new PhotoSearch();
 
-        return bitmap;
-    }
+    private Photo chosenPhoto;
+
 }
