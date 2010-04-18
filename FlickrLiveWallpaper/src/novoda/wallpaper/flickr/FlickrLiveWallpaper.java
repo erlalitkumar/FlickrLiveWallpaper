@@ -129,15 +129,15 @@ public class FlickrLiveWallpaper extends WallpaperService {
          */
         @Override
         public void onVisibilityChanged(boolean visible) {
-            boolean reSynchNeeded = (System.currentTimeMillis() - lastSync) > 1000 * 60 * 60;
-            currentlyVisibile = visible;
-            if (visible) {
-                if (reSynchNeeded) {
-                    mHandler.post(mDrawWallpaper);
+                boolean reSynchNeeded = (System.currentTimeMillis() - lastSync) > 1000 * 60 * 60;
+                currentlyVisibile = visible;
+                if (visible) {
+                    if (reSynchNeeded) {
+                        mHandler.post(mDrawWallpaper);
+                    }
+                } else {
+                    mHandler.removeCallbacks(mDrawWallpaper);
                 }
-            } else {
-                mHandler.removeCallbacks(mDrawWallpaper);
-            }
         }
 
         @Override
@@ -366,6 +366,27 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 }
             }
         }
+        
+        private void drawFramingImageNotification() {
+            float x = displayMiddleX;
+            float y = 180;
+            
+            final SurfaceHolder holder = getSurfaceHolder();
+            Canvas c = null;
+            try {
+                c = holder.lockCanvas();
+                c.drawPaint(bgPaint);
+                final Bitmap fullScreenIcon = BitmapFactory.decodeResource(getResources(),
+                        R.drawable.preview_frame);
+                if (c != null) {
+                    c.drawBitmap(fullScreenIcon, (x - fullScreenIcon.getWidth() * 0.5f), y, txtPaint);
+                }
+            } finally {
+                if (c != null) {
+                    holder.unlockCanvasAndPost(c);
+                }
+            }
+        }
 
         /*
          * Provides error feedback for users Also clears the screen of any old
@@ -504,24 +525,35 @@ public class FlickrLiveWallpaper extends WallpaperService {
                         drawingWallpaper = true;
                         (new Thread() {
                             public void run() {
-                                retrieveNewImage();
+                                if(isPreview()){
+                                    drawPreview();
+                                }else{
+                                    retrieveNewImage();
+                                }
                                 drawingWallpaper = false;
                             }
-                          }
-
-                            ).start();
+                          }).start();
                     } else {
                         Log.w(TAG, "Queuing a draw request");
                         mHandler.postDelayed(mDrawWallpaper, 600);
                     }
                 }
             }
+            
+            private void drawPreview() {
+                
+                final boolean FRAMED = mPrefs.getString(PREF_DISPLAY_TYPE, PREF_DISPLAY_TYPE_FRAME)
+                .equals(PREF_DISPLAY_TYPE_FRAME);
+                if(FRAMED){
+                    drawFramingImageNotification();   
+                }else{
+                    drawScalingImageNotification("Stretching images across dashboards");
+                }
+            }
 
             private void retrieveNewImage() {
                 Log.i(TAG, "Request to refresh Wallpaper");
                 drawInitialLoadingNotification();
-                // loadMockImages();
-
                 try {
                     location = geoNamesAPI.obtainLocation(getRecentLocation());
                 } catch (ConnectException e) {
@@ -564,16 +596,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 }
             }
         };
-
-        protected void loadMockImages() {
-            cachedBitmap = BitmapFactory
-                    .decodeResource(getResources(), R.drawable.mock_port_medium);
-            WallpaperManager wm = WallpaperManager.getInstance(getApplicationContext());
-            cachedBitmap = scaleImage(cachedBitmap, wm.getDesiredMinimumWidth(), wm
-                    .getDesiredMinimumHeight());
-            // cachedBitmap = BitmapFactory.decodeResource(getResources(),
-            // R.drawable.mock_port_medium);
-        }
 
         private final Handler mHandler = new Handler();
 
