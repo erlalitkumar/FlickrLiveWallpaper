@@ -6,6 +6,8 @@ import java.net.ConnectException;
 import java.net.URL;
 import java.text.DecimalFormat;
 
+import novoda.wallpaper.flickr.FlickrLiveWallpaper;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -15,7 +17,9 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import android.content.Context;
 import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
 import android.util.Pair;
 
@@ -25,9 +29,9 @@ public class GeoNamesAPI {
      * Using the GeoNames API establish an approximate location
      * @return Pair<Location, String>(Location, placeName)
      */
-    public Pair<Location, String> obtainLocation(Location location) throws ConnectException {
+    public Pair<Location, String> obtainLocation(LocationManager locationMgr) throws ConnectException {
         Log.d(TAG, "Requesting photo details based on approximate location");
-        // final Location location = getRecentLocation();
+         final Location location = getRecentLocation(locationMgr);
         // return new Pair<Location, String>(location,
         // getNearestPlaceName(df.format(location.getLatitude()),
         // df.format(location.getLongitude()),httpClient));
@@ -39,8 +43,18 @@ public class GeoNamesAPI {
             throw new ConnectException();
         }
         
-        
         return pair;
+    }
+    
+    private Location getRecentLocation(LocationManager locManager) {
+        Location location = null;
+        for (String provider : locManager.getProviders(true)) {
+            location = locManager.getLastKnownLocation(provider);
+            if (location != null) {
+                break;
+            }
+        }
+        return location;
     }
 
     private String getNearestPlaceName(String lat, String lon) throws ConnectException {
