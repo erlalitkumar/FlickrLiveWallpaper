@@ -18,14 +18,10 @@
 		android:name="android.permission.SET_WALLPAPER" />
 	<uses-permission
 		android:name="android.permission.SET_WALLPAPER_HINTS" />
-	 <uses-permission
-		android:name="android.permission.GET_TASKS" />
-		
-		
 		
 	<application
 		android:label="@string/app_name"
-		android:icon="@drawable/icon">
+		android:icon="@drawable/ic_logo_flickr">
 		<service
 			android:label="@string/flickr_service_label"
 			android:name=".FlickrLiveWallpaper"
