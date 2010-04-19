@@ -1,23 +1,14 @@
 package novoda.wallpaper.flickr.models;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import novoda.net.Flickr;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
 
 public class PhotoSearch extends Flickr<Photo> {
 
@@ -60,5 +51,4 @@ public class PhotoSearch extends Flickr<Photo> {
 		return "flickr.photos.search";
 	}
 
-	private static final String TAG = PhotoSearch.class.getSimpleName();
 }

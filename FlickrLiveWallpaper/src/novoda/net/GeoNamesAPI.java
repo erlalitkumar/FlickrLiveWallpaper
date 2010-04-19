@@ -6,8 +6,6 @@ import java.net.ConnectException;
 import java.net.URL;
 import java.text.DecimalFormat;
 
-import novoda.wallpaper.flickr.FlickrLiveWallpaper;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -17,7 +15,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 import android.util.Log;

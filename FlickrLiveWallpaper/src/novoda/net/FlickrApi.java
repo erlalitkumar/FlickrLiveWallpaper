@@ -122,6 +122,7 @@ public class FlickrApi {
     /*
      * Return Flickr photos based on the exact user's location
      */
+    @SuppressWarnings("unused")
     private List<Photo> getPhotosFromExactLocation(Location location) {
         Log.d(TAG, "Requesting photo details based on exact location");
         final Flickr<Photo> photoSearch = new PhotoSearch();
