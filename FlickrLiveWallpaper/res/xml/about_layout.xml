@@ -1,0 +1,18 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:orientation="vertical"
+    android:paddingLeft="15dip"
+    android:paddingRight="15dip">
+
+	<TextView 
+		android:id="@+android:id/title"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="yo this is text"
+	    android:singleLine="true"
+		android:textAppearance="?android:attr/textAppearanceLarge" />
+	
+
+</LinearLayout>

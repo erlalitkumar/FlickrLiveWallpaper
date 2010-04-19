@@ -100,7 +100,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
             mHandler.removeCallbacks(mDrawWallpaper);
             super.onDestroy();
         }
-
+        
         /*
          * A new Wallpaper is requested every time the dashboard becomes visible
          * within a reasonable time period to save queries being made overly

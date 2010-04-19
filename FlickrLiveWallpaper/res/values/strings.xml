@@ -7,7 +7,13 @@
 	<string name="flickr_settings">Wallpaper Settings</string>
 	<string name="flickr_settings_size_title">Display Type</string>
 	<string name="flickr_settings_tap_title">Action on Wallpaper Tap</string>
+	<string name="flickr_settings_about_title">About</string>
+	<string name="flickr_settings_about_txt">We\'d like to get your help! You can help by just giving us feedback or if you are a developer you can help us make the code better for everyone. Reply to us via flickr\@novoda.com or visit the code here: </string>
+	<string name="flickr_settings_about_txt_second">If you are a developer you can visit the code here: </string>
+	<string name="flickr_settings_about_issues_link">http://novoda.lighthouseapp.com/</string>
+	<string name="flickr_settings_about_code_link">http://github.com/novoda/FlickrLiveWallpaper</string>
 	<string name="flickr_settings_size_summary">Display in a nice frame or across your whole dashboard.</string>
+	<string name="flickr_settings_photographer_credit">Example images are provided by author name</string>
 	<string name="flickr_settings_readme_title">Attention Flickr Explorers!</string>
 	<string name="flickr_settings_info">Downloading photos uses bandwidth! \nSome phone packages allow more internet downloads than others. Wifi is not counted in your monthly limit so be sure to explore through web access points when you get the opportunity.</string>
 </resources>

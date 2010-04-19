@@ -15,7 +15,13 @@
             android:title="@string/flickr_settings_tap_title"
             android:entries="@array/flickr_action_tap_options"
             android:entryValues="@array/flickr_action_tap_values" />
-            
+		
+	<novoda.wallpaper.flickr.models.AboutPreference 
+    	android:key="flickr_about" 
+        android:title="@string/flickr_settings_about_title" 
+        android:dialogMessage="@string/flickr_settings_about_txt" 
+        android:negativeButtonText="@null" /> 		
+                    
      <EditTextPreference 
             android:key="flickr_info"
             android:selectable="false"
