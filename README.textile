@@ -1,13 +1,17 @@
-h1. Location based livewalpaper for Android
+!http://github.com/downloads/novoda/FlickrLiveWallpaper/promo.png!
 
+h1. Flickr Explorer for Android
+
+Location based photos! Urban explorers are now Flickr explorers!
 Install the app on your 2.0 Android phone by scanning this QR code:
 !http://github.com/downloads/novoda/FlickrLiveWallpaper/flickrlivewallpaper_qrcode.png!
 
 h2. Summary
 
-Flickr LiveWallpaper offers a unique experience anywhere in the world, making urban explorers now Flickr explorers! Your phone backgrounds are uniquely chosen from Flickr depending on your current location, with millions of world locations and Billions of photos on Flickr what will you uncover? 
+Backgrounds are chosen from Flickr depending on your current location. With millions of world locations and billions of photos, what will you uncover?
+This version is currently optimised for the Nexus One. We'll target more phones soon.
 
-h2. How to use
 
-In your live wallpaper settings select the flickr live wallpaper and then wait for it to find your location and image.
-To see a variety of images, press back in the preview before selecting again.
+!http://github.com/downloads/novoda/FlickrLiveWallpaper/framedPreview.png!
+
+!http://github.com/downloads/novoda/FlickrLiveWallpaper/looking.png!
