@@ -36,7 +36,7 @@ public class GeoNamesAPI {
         try{
             pair = new Pair<Location, String>(location, getNearestPlaceName(df.format(location
                     .getLatitude()), df.format(location.getLongitude())));
-        }catch(NullPointerException e){
+        }catch(Exception e){
             throw new ConnectException();
         }
         

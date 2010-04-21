@@ -60,7 +60,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
 
-            Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+            final Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
 
             mPrefs = FlickrLiveWallpaper.this.getSharedPreferences(Constants.Prefs.NAME, MODE_PRIVATE);
             mPrefs.registerOnSharedPreferenceChangeListener(this);
@@ -87,10 +87,10 @@ public class FlickrLiveWallpaper extends WallpaperService {
 
         @Override
         public void onDestroy() {
-            if (cachedBitmap != null) {
-                cachedBitmap.recycle();
-            }
-            cachedBitmap = null;
+//            if (cachedBitmap != null) {
+//                cachedBitmap.recycle();
+//            }
+//            cachedBitmap = null;
             mHandler.removeCallbacks(mDrawWallpaper);
             super.onDestroy();
         }
@@ -146,7 +146,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
             }
         }
 
-        private void requestAndCacheImage(Location location, String placeName)
+        private Bitmap requestImage(final Location location, final String placeName)
                 throws IllegalStateException {
             final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
             .equals(Constants.Prefs.DISPLAY_FRAME);
@@ -154,31 +154,33 @@ public class FlickrLiveWallpaper extends WallpaperService {
             final Pair<Bitmap, String> flickrResult = flickrApi.retrievePhoto(FRAMED, location,
                     placeName);
 
-            cachedBitmap = flickrResult.first;
+//            cachedBitmap = flickrResult.first;
             imgUrl = flickrResult.second;
 
-            if (cachedBitmap == null) {
+            final Bitmap img = flickrResult.first;
+            
+            if (img == null) {
                 Log.e(TAG, "I'm not sure what went wrong but image could not be retrieved");
                 throw new IllegalStateException(
                         "Whoops! We had problems retrieving an image. Please try again.");
-            } else {
-                cachedBitmap = scaleImage(cachedBitmap, DISPLAY_WIDTH, DISPLAY_HEIGHT);
             }
+            
+            return scaleImage(img, DISPLAY_WIDTH, DISPLAY_HEIGHT);
         }
 
-        private void drawFramedImagePortrait() {
+        private void drawFramedPortrait(final Bitmap img) {
             final SurfaceHolder holder = getSurfaceHolder();
             Canvas c = null;
             try {
                 c = holder.lockCanvas();
-                if (c != null && cachedBitmap != null) {
+                if (c != null && img != null) {
                     Log.i(TAG, "Drawing a Framed Portrait image");
                     c.drawPaint(bgPaint);
                     frame = BitmapFactory.decodeResource(getResources(),
                             R.drawable.bg_frame_portrait);
                     c.drawBitmap(frame, Constants.Frame.PORTRAIT_MARGIN_LEFT, Constants.Frame.PORTRAIT_MARGIN_TOP,
                             new Paint());
-                    c.drawBitmap(cachedBitmap, Constants.Frame.PORTRAIT_IMG_MARGIN_LEFT, Constants.Frame.PORTRAIT_IMG_MARGIN_TOP,
+                    c.drawBitmap(img, Constants.Frame.PORTRAIT_IMG_MARGIN_LEFT, Constants.Frame.PORTRAIT_IMG_MARGIN_TOP,
                             txtPaint);
                 }
             } finally {
@@ -188,12 +190,12 @@ public class FlickrLiveWallpaper extends WallpaperService {
             }
         }
 
-        private void drawFramedImageLandscape() {
+        private void drawFramedLandscape(final Bitmap img) {
             final SurfaceHolder holder = getSurfaceHolder();
             Canvas c = null;
             try {
                 c = holder.lockCanvas();
-                if (c != null && cachedBitmap != null) {
+                if (c != null && img != null) {
                     Log.i(TAG, "Drawing a Framed Landscape image");
 
                     c.drawPaint(bgPaint);
@@ -201,7 +203,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
                             R.drawable.bg_frame_landscape);
                     c.drawBitmap(frame, Constants.Frame.LANDSCAPE_MARGIN_LEFT, Constants.Frame.LANDSCAPE_MARGIN_TOP,
                             new Paint());
-                    c.drawBitmap(cachedBitmap, Constants.Frame.LANDSCAPE_IMG_MARGIN_LEFT, Constants.Frame.LANDSCAPE_IMG_MARGIN_TOP,
+                    c.drawBitmap(img, Constants.Frame.LANDSCAPE_IMG_MARGIN_LEFT, Constants.Frame.LANDSCAPE_IMG_MARGIN_TOP,
                             txtPaint);
                 }
             } finally {
@@ -219,7 +221,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
          * @param height
          * @return
          */
-        private Bitmap scaleImage(Bitmap bitmap, int width, int height) {
+        private Bitmap scaleImage(final Bitmap bitmap,final int width,final int height) {
             final int bitmapWidth = bitmap.getWidth();
             final int bitmapHeight = bitmap.getHeight();
             final int scaledWidth;
@@ -281,7 +283,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
          * Present information designed to inform the user about a behavior
          * which is not erroneous.
          */
-        private void drawFullscreenPreview(String string) {
+        private void drawFullscreenPreview(final String string) {
             Log.i(TAG, string);
             float x = DISPLAY_X_CENTER;
             float y = 180;
@@ -337,7 +339,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
          * lag in retrieving and then resizing the image but also informs the
          * user of their presumed location.
          */
-        private void drawNotificationScaling(String placeName) {
+        private void drawNotificationScaling(final String placeName) {
             Log.d(TAG, "Displaying loading details for placename=[" + placeName + "]");
             final float x = DISPLAY_X_CENTER;
             final float y = 180;
@@ -366,7 +368,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
          * Provides error feedback for users Also clears the screen of any old
          * artifacts
          */
-        private void drawNotificationError(String error) {
+        private void drawNotificationError(final String error) {
             Log.e(TAG, error);
             float x = DISPLAY_X_CENTER;
             float y = 180;
@@ -555,19 +557,20 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 drawNotificationScaling(location.second);
                 final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
                         .equals(Constants.Prefs.DISPLAY_FRAME);
+                final Bitmap image;
                 try {
-                    requestAndCacheImage(location.first, location.second);
+                    image = requestImage(location.first, location.second);
                     if (FRAMED) {
-                        if (cachedBitmap.getWidth() > cachedBitmap.getHeight()) {
-                            drawFramedImageLandscape();
+                        if (image.getWidth() > image.getHeight()) {
+                            drawFramedLandscape(image);
                         } else {
-                            drawFramedImagePortrait();
+                            drawFramedPortrait(image);
                         }
                     } else {
                         drawFullscreenPreview("Stretching images across dashboards");
 
                         try {
-                            setWallpaper(cachedBitmap);
+                            setWallpaper(image);
                         } catch (Exception e) {
                             Log.e(TAG, "Coudn't set wallpaper", e);
                             drawNotificationError("Problems trying to display your Photo");
@@ -615,8 +618,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
     
     private static boolean drawingWallpaper = false;
     
-    private static Bitmap cachedBitmap;
-
     public static final String TAG = FlickrLiveWallpaper.class.getSimpleName();
 
 }
