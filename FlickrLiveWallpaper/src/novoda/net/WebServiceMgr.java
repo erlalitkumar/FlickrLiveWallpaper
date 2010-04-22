@@ -23,6 +23,7 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
+import android.net.SSLCertificateSocketFactory;
 import android.util.Log;
 
 public class WebServiceMgr {
