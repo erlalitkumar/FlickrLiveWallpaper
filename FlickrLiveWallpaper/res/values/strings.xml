@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">FlickrLiveWallpaper</string>
+	<string name="app_name">Flickr Explorer</string>
 	<string name="description">Location based photos! Urban explorers are now Flickr explorers!</string>
 	<string name="flickr_service_label">Flickr Explorer</string>
+	<string name="notification_action">Downloading Wallpaper</string>
 	<string name="author">Novoda</string>
 	<string name="flickr_settings">Wallpaper Settings</string>
 	<string name="flickr_settings_size_title">Display Type</string>

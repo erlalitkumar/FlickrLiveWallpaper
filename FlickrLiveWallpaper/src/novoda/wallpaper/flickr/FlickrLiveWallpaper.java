@@ -5,6 +5,9 @@ import java.net.ConnectException;
 
 import novoda.net.FlickrApi;
 import novoda.net.GeoNamesAPI;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
@@ -397,6 +400,20 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 }
             }
         }
+        
+        private void notifyDownloadingWallpaper() {
+            NotificationManager nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+            Intent intent = new Intent();
+            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
+            Notification notif = new Notification(R.drawable.ic_logo_flickr, getText(R.string.notification_action), System.currentTimeMillis());
+            notif.setLatestEventInfo(getApplicationContext(), getText(R.string.app_name), getText(R.string.notification_action), contentIntent);
+            nm.notify(R.string.app_name, notif);
+        }
+        
+        private void cancelAnyNotifications() {
+            ((NotificationManager) getSystemService(NOTIFICATION_SERVICE))
+            .cancel(R.string.app_name);
+        }
 
         private void createPainters() {
             txtPaint = new Paint();
@@ -505,6 +522,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
             public void run() {
                 if (!drawingWallpaper) {
                     if (currentlyVisibile) {
+                        notifyDownloadingWallpaper();
                         drawingWallpaper = true;
                         if (isPreview()) {
                             drawPreview();
@@ -514,6 +532,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
                                 public void run() {
                                     retrieveNewImage();
                                     drawingWallpaper = false;
+                                    cancelAnyNotifications();
                                 }
                             }).start();
                         }
