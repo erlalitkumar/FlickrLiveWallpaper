@@ -5,6 +5,8 @@
 	<string name="flickr_service_label">Flickr Explorer</string>
 	<string name="notification_action">Downloading Wallpaper</string>
 	<string name="author">Novoda</string>
+	<string name="crash_reporter_mail_subject">Flickr explorer crashed my phone!</string>
+	<string name="crash_reporter_mail_body">:( Shame on you crashing my phone! Here is what happened, make sure it never happens again.</string>
 	<string name="flickr_settings">Wallpaper Settings</string>
 	<string name="flickr_settings_size_title">Display Type</string>
 	<string name="flickr_settings_tap_title">Action on Wallpaper Tap</string>

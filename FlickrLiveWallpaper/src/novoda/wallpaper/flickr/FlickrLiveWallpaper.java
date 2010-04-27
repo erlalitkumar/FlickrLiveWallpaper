@@ -3,6 +3,9 @@ package novoda.wallpaper.flickr;
 
 import java.net.ConnectException;
 
+import com.nullwire.trace.ExceptionHandler;
+
+import novoda.net.ErrorReporter;
 import novoda.net.FlickrApi;
 import novoda.net.GeoNamesAPI;
 import android.app.Notification;
@@ -62,9 +65,9 @@ public class FlickrLiveWallpaper extends WallpaperService {
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
-
             final Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
-
+            ExceptionHandler.register(getApplicationContext());
+            
             mPrefs = FlickrLiveWallpaper.this.getSharedPreferences(Constants.Prefs.NAME, MODE_PRIVATE);
             mPrefs.registerOnSharedPreferenceChangeListener(this);
             onSharedPreferenceChanged(mPrefs, null);
