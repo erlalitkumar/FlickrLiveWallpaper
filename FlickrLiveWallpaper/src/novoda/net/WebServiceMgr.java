@@ -32,14 +32,21 @@ public class WebServiceMgr {
         setupHttpClient();
     }
 
-    public HttpResponse getHTTPResponse(URL photoUrl) {
+    public HttpResponse getHTTPResponse(URL photoUrl) throws IllegalArgumentException{
         HttpGet request = null;
         HttpResponse response = null;
 
+        if (photoUrl ==null){
+            throw new IllegalArgumentException("Photo URL was null");
+        }
+        
         try {
             request = new HttpGet(photoUrl.toURI());
         } catch (URISyntaxException e) {
             Log.e(TAG, "Could not create GetRequest: " + e.getMessage(), e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "Could not create GetRequest as URL is null", e);
+            throw new IllegalArgumentException(e);
         }
 
         /*

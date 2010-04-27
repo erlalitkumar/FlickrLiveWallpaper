@@ -24,10 +24,20 @@ import android.util.Pair;
 
 public class FlickrApi {
 
-    public Pair<Bitmap, String> retrievePhoto(boolean fRAMED, Location location, String placeName) {
+    public Pair<Bitmap, String> retrievePhoto(boolean fRAMED, Location location, String placeName) throws NoFlickrImagesFoundException{
         // List<Photo> list = getPhotosFromExactLocation(location);
         List<Photo> photos = photosFromApproxLocation(placeName, location);
-        chosenPhoto = choosePhoto(photos);
+        
+        if(photos.isEmpty()){
+            throw new NoFlickrImagesFoundException();
+        }
+        
+        try {
+            chosenPhoto = choosePhoto(photos);
+        } catch (NoFlickrImagesFoundException e) {
+            Log.e(TAG, "No Photos were in the collection!");
+            throw new NoFlickrImagesFoundException();
+        }
 
         Bitmap cachedBitmap = null;
         if (chosenPhoto != null) {
@@ -64,7 +74,9 @@ public class FlickrApi {
                 HttpResponse response = webSrvMgr.getHTTPResponse(photoUrl);
                 InputStream input = response.getEntity().getContent();
                 bitmap = BitmapFactory.decodeStream(input);
-            } catch (IOException e) {
+            }catch (IllegalArgumentException e) {
+                Log.e(TAG, "Could not retireve bitmap wth null URL", e);
+            }catch (IOException e) {
                 Log.e(TAG, "Could not retrieve bitmap from resulting httpResponse", e);
             }
             retries++;
@@ -103,7 +115,7 @@ public class FlickrApi {
     /*
      * Chosen an image from within a list of suitable photo specs.
      */
-    private Photo choosePhoto(List<Photo> photos) {
+    private Photo choosePhoto(List<Photo> photos) throws NoFlickrImagesFoundException{
         Log.v(TAG, "Choosing a photo from amoungst those with URLs");
 
         for (int i = 0; i < photos.size(); i++) {
@@ -112,11 +124,17 @@ public class FlickrApi {
                 photos.remove(i);
             }
         }
-        if (photos.size() > 1) {
-            chosenPhoto = photos.get(randomWheel.nextInt(photos.size() - 1));
-            return chosenPhoto;
+        if (!photos.isEmpty()) {
+            if(photos.size()>1){
+                chosenPhoto = photos.get(randomWheel.nextInt(photos.size() - 1));
+                return chosenPhoto;
+            }else{
+                Log.w(TAG, "There was only one photo found");
+                return photos.get(0);
+            }
         }
-        return photos.get(0);
+        
+        throw new NoFlickrImagesFoundException();
     }
 
     /*

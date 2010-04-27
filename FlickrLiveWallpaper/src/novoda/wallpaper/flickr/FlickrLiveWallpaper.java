@@ -8,6 +8,7 @@ import com.nullwire.trace.ExceptionHandler;
 import novoda.net.ErrorReporter;
 import novoda.net.FlickrApi;
 import novoda.net.GeoNamesAPI;
+import novoda.net.NoFlickrImagesFoundException;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -158,12 +159,18 @@ public class FlickrLiveWallpaper extends WallpaperService {
         }
 
         private Bitmap requestImage(final Location location, final String placeName)
-                throws IllegalStateException {
+                throws IllegalStateException,NoFlickrImagesFoundException{
             final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
             .equals(Constants.Prefs.DISPLAY_FRAME);
 
-            final Pair<Bitmap, String> flickrResult = flickrApi.retrievePhoto(FRAMED, location,
-                    placeName);
+            
+            Pair<Bitmap, String> flickrResult;
+            try {
+                flickrResult = flickrApi.retrievePhoto(FRAMED, location, placeName);
+            } catch (NoFlickrImagesFoundException e) {
+                throw new IllegalStateException(
+                "Sorry we couldn't find any images around your location, try again soon!");
+            }
 
 //            cachedBitmap = flickrResult.first;
             imgUrl = flickrResult.second;
@@ -606,6 +613,9 @@ public class FlickrLiveWallpaper extends WallpaperService {
                         }
                     }
 
+                } catch (NoFlickrImagesFoundException e) {
+                    Log.e(TAG, e.getMessage());
+                    drawNotificationError("Sorry we couldn't find any images around your location, try again soon!");
                 } catch (IllegalStateException e) {
                     Log.e(TAG, e.getMessage());
                     drawNotificationError("Connection problems when trying to download your photos.");
