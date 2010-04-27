@@ -135,10 +135,15 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     errorShown = false;
                     mHandler.post(mDrawWallpaper);
                 } else {
-                    Log.i(TAG, "Browsing to image=[" + imgUrl + "]");
-                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse(imgUrl));
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
+                    
+                    try{
+                        Log.i(TAG, "Browsing to image=[" + imgUrl + "]");
+                        intent = new Intent(Intent.ACTION_VIEW, Uri.parse(imgUrl));
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }catch(NullPointerException e){
+                        Log.e(TAG, "Flickr Image URL was null", e);
+                    }
                 }
             }
 
@@ -278,7 +283,9 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     c.drawBitmap(fullScreenIcon, (x - fullScreenIcon.getWidth() * 0.5f), y,
                             txtPaint);
                 }
-            } finally {
+            } catch(NullPointerException e){
+                Log.e(TAG, "Could not draw frame preview", e);
+            }finally {
                 if (c != null) {
                     holder.unlockCanvasAndPost(c);
                 }
@@ -525,12 +532,12 @@ public class FlickrLiveWallpaper extends WallpaperService {
             public void run() {
                 if (!drawingWallpaper) {
                     if (currentlyVisibile) {
-                        notifyDownloadingWallpaper();
                         drawingWallpaper = true;
                         if (isPreview()) {
                             drawPreview();
                             drawingWallpaper = false;
                         } else {
+                            notifyDownloadingWallpaper();
                             (new Thread() {
                                 public void run() {
                                     retrieveNewImage();
