@@ -117,7 +117,6 @@ public class FlickrApi {
      */
     private Photo choosePhoto(List<Photo> photos) throws NoFlickrImagesFoundException{
         Log.v(TAG, "Choosing a photo from amoungst those with URLs");
-
         for (int i = 0; i < photos.size(); i++) {
             if (photos.get(i).origResImg_url == null || photos.get(i).medResImg_url == null
                     || photos.get(i).smallResImg_url == null) {

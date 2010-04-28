@@ -18,6 +18,11 @@ public class NoFlickrImagesFoundException extends Exception {
     private String separator = "\n";
 
     public NoFlickrImagesFoundException() {
+        this.id = 000000;
+        this.classname = "none_set";
+        this.method = "none_set";
+        this.message = "No Flickr images were found";
+        this.previous = null;        
     }
     
     public NoFlickrImagesFoundException(int id, String classname, String method, String message,  NoFlickrImagesFoundException previous) {

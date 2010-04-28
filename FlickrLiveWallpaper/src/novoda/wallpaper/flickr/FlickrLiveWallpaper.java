@@ -3,9 +3,6 @@ package novoda.wallpaper.flickr;
 
 import java.net.ConnectException;
 
-import com.nullwire.trace.ExceptionHandler;
-
-import novoda.net.ErrorReporter;
 import novoda.net.FlickrApi;
 import novoda.net.GeoNamesAPI;
 import novoda.net.NoFlickrImagesFoundException;
@@ -38,6 +35,8 @@ import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
+import com.nullwire.trace.ExceptionHandler;
+
 /*
  * ===================================
  * Flickr Live Wallpaper 
@@ -66,6 +65,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
+            createPainters();
             final Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
             ExceptionHandler.register(getApplicationContext());
             
@@ -88,8 +88,6 @@ public class FlickrLiveWallpaper extends WallpaperService {
             DISPLAY_WIDTH = dm.getWidth();
             DISPLAY_HEIGHT = dm.getHeight();
             DISPLAY_X_CENTER = DISPLAY_WIDTH * 0.5f;
-
-            createPainters();
         }
 
         @Override
@@ -165,12 +163,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
 
             
             Pair<Bitmap, String> flickrResult;
-            try {
-                flickrResult = flickrApi.retrievePhoto(FRAMED, location, placeName);
-            } catch (NoFlickrImagesFoundException e) {
-                throw new IllegalStateException(
-                "Sorry we couldn't find any images around your location, try again soon!");
-            }
+            flickrResult = flickrApi.retrievePhoto(FRAMED, location, placeName);
 
 //            cachedBitmap = flickrResult.first;
             imgUrl = flickrResult.second;
@@ -614,7 +607,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     }
 
                 } catch (NoFlickrImagesFoundException e) {
-                    Log.e(TAG, e.getMessage());
+                    Log.e(TAG, "No images were found in collection of returned images");
                     drawNotificationError("Sorry we couldn't find any images around your location, try again soon!");
                 } catch (IllegalStateException e) {
                     Log.e(TAG, e.getMessage());
