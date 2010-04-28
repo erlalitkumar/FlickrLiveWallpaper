@@ -66,10 +66,12 @@ public class FlickrLiveWallpaper extends WallpaperService {
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
             createPainters();
-            final Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+            final Display dm = ((WindowManager)getSystemService(WINDOW_SERVICE))
+                    .getDefaultDisplay();
             ExceptionHandler.register(getApplicationContext());
-            
-            mPrefs = FlickrLiveWallpaper.this.getSharedPreferences(Constants.Prefs.NAME, MODE_PRIVATE);
+
+            mPrefs = FlickrLiveWallpaper.this.getSharedPreferences(Constants.Prefs.NAME,
+                    MODE_PRIVATE);
             mPrefs.registerOnSharedPreferenceChangeListener(this);
             onSharedPreferenceChanged(mPrefs, null);
 
@@ -92,14 +94,14 @@ public class FlickrLiveWallpaper extends WallpaperService {
 
         @Override
         public void onDestroy() {
-//            if (cachedBitmap != null) {
-//                cachedBitmap.recycle();
-//            }
-//            cachedBitmap = null;
+            // if (cachedBitmap != null) {
+            // cachedBitmap.recycle();
+            // }
+            // cachedBitmap = null;
             mHandler.removeCallbacks(mDrawWallpaper);
             super.onDestroy();
         }
-        
+
         /*
          * A new Wallpaper is requested every time the dashboard becomes visible
          * within a reasonable time period to save queries being made overly
@@ -128,19 +130,20 @@ public class FlickrLiveWallpaper extends WallpaperService {
             Log.i(TAG, "An action going on" + action);
             if (action.equals(WallpaperManager.COMMAND_TAP)) {
 
-                String tappingOpt = mPrefs.getString(Constants.Prefs.TAP_TYPE, Constants.Prefs.TAP_TYPE_VISIT);
+                String tappingOpt = mPrefs.getString(Constants.Prefs.TAP_TYPE,
+                        Constants.Prefs.TAP_TYPE_VISIT);
 
                 if (tappingOpt.equals(Constants.Prefs.TAP_TYPE_REFRESH) || errorShown) {
                     errorShown = false;
                     mHandler.post(mDrawWallpaper);
                 } else {
-                    
-                    try{
+
+                    try {
                         Log.i(TAG, "Browsing to image=[" + imgUrl + "]");
                         intent = new Intent(Intent.ACTION_VIEW, Uri.parse(imgUrl));
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
-                    }catch(NullPointerException e){
+                    } catch (NullPointerException e) {
                         Log.e(TAG, "Flickr Image URL was null", e);
                     }
                 }
@@ -157,25 +160,24 @@ public class FlickrLiveWallpaper extends WallpaperService {
         }
 
         private Bitmap requestImage(final Location location, final String placeName)
-                throws IllegalStateException,NoFlickrImagesFoundException{
-            final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
-            .equals(Constants.Prefs.DISPLAY_FRAME);
+                throws IllegalStateException, NoFlickrImagesFoundException {
+            final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY,
+                    Constants.Prefs.DISPLAY_FRAME).equals(Constants.Prefs.DISPLAY_FRAME);
 
-            
             Pair<Bitmap, String> flickrResult;
             flickrResult = flickrApi.retrievePhoto(FRAMED, location, placeName);
 
-//            cachedBitmap = flickrResult.first;
+            // cachedBitmap = flickrResult.first;
             imgUrl = flickrResult.second;
 
             final Bitmap img = flickrResult.first;
-            
+
             if (img == null) {
                 Log.e(TAG, "I'm not sure what went wrong but image could not be retrieved");
                 throw new IllegalStateException(
                         "Whoops! We had problems retrieving an image. Please try again.");
             }
-            
+
             return scaleImage(img, DISPLAY_WIDTH, DISPLAY_HEIGHT);
         }
 
@@ -189,10 +191,10 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     c.drawPaint(bgPaint);
                     frame = BitmapFactory.decodeResource(getResources(),
                             R.drawable.bg_frame_portrait);
-                    c.drawBitmap(frame, Constants.Frame.PORTRAIT_MARGIN_LEFT, Constants.Frame.PORTRAIT_MARGIN_TOP,
-                            new Paint());
-                    c.drawBitmap(img, Constants.Frame.PORTRAIT_IMG_MARGIN_LEFT, Constants.Frame.PORTRAIT_IMG_MARGIN_TOP,
-                            txtPaint);
+                    c.drawBitmap(frame, Constants.Frame.PORTRAIT_MARGIN_LEFT,
+                            Constants.Frame.PORTRAIT_MARGIN_TOP, new Paint());
+                    c.drawBitmap(img, Constants.Frame.PORTRAIT_IMG_MARGIN_LEFT,
+                            Constants.Frame.PORTRAIT_IMG_MARGIN_TOP, txtPaint);
                 }
             } finally {
                 if (c != null) {
@@ -212,10 +214,10 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     c.drawPaint(bgPaint);
                     frame = BitmapFactory.decodeResource(getResources(),
                             R.drawable.bg_frame_landscape);
-                    c.drawBitmap(frame, Constants.Frame.LANDSCAPE_MARGIN_LEFT, Constants.Frame.LANDSCAPE_MARGIN_TOP,
-                            new Paint());
-                    c.drawBitmap(img, Constants.Frame.LANDSCAPE_IMG_MARGIN_LEFT, Constants.Frame.LANDSCAPE_IMG_MARGIN_TOP,
-                            txtPaint);
+                    c.drawBitmap(frame, Constants.Frame.LANDSCAPE_MARGIN_LEFT,
+                            Constants.Frame.LANDSCAPE_MARGIN_TOP, new Paint());
+                    c.drawBitmap(img, Constants.Frame.LANDSCAPE_IMG_MARGIN_LEFT,
+                            Constants.Frame.LANDSCAPE_IMG_MARGIN_TOP, txtPaint);
                 }
             } finally {
                 if (c != null) {
@@ -232,14 +234,14 @@ public class FlickrLiveWallpaper extends WallpaperService {
          * @param height
          * @return
          */
-        private Bitmap scaleImage(final Bitmap bitmap,final int width,final int height) {
+        private Bitmap scaleImage(final Bitmap bitmap, final int width, final int height) {
             final int bitmapWidth = bitmap.getWidth();
             final int bitmapHeight = bitmap.getHeight();
             final int scaledWidth;
             final int scaledHeight;
 
-            final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
-            .equals(Constants.Prefs.DISPLAY_FRAME);
+            final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY,
+                    Constants.Prefs.DISPLAY_FRAME).equals(Constants.Prefs.DISPLAY_FRAME);
 
             if (FRAMED) {
 
@@ -271,7 +273,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
         private void drawFramePreview() {
             float x = DISPLAY_X_CENTER;
             float y = 180;
-        
+
             final SurfaceHolder holder = getSurfaceHolder();
             Canvas c = null;
             try {
@@ -283,9 +285,9 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     c.drawBitmap(fullScreenIcon, (x - fullScreenIcon.getWidth() * 0.5f), y,
                             txtPaint);
                 }
-            } catch(NullPointerException e){
+            } catch (NullPointerException e) {
                 Log.e(TAG, "Could not draw frame preview", e);
-            }finally {
+            } finally {
                 if (c != null) {
                     holder.unlockCanvasAndPost(c);
                 }
@@ -300,7 +302,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
             Log.i(TAG, string);
             float x = DISPLAY_X_CENTER;
             float y = 180;
-        
+
             final SurfaceHolder holder = getSurfaceHolder();
             Canvas c = null;
             try {
@@ -410,19 +412,21 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 }
             }
         }
-        
+
         private void notifyDownloadingWallpaper() {
             NotificationManager nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
             Intent intent = new Intent();
-            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
-            Notification notif = new Notification(R.drawable.ic_logo_flickr, getText(R.string.notification_action), System.currentTimeMillis());
-            notif.setLatestEventInfo(getApplicationContext(), getText(R.string.app_name), getText(R.string.notification_action), contentIntent);
+            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0,
+                    intent, 0);
+            Notification notif = new Notification(R.drawable.ic_logo_flickr,
+                    getText(R.string.notification_action), System.currentTimeMillis());
+            notif.setLatestEventInfo(getApplicationContext(), getText(R.string.app_name),
+                    getText(R.string.notification_action), contentIntent);
             nm.notify(R.string.app_name, notif);
         }
-        
+
         private void cancelAnyNotifications() {
-            ((NotificationManager) getSystemService(NOTIFICATION_SERVICE))
-            .cancel(R.string.app_name);
+            ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.app_name);
         }
 
         private void createPainters() {
@@ -443,7 +447,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
                     Shader.TileMode.REPEAT);
             bgPaint = new Paint();
             bgPaint.setShader(mShader1);
-//            bg.recycle();
+            // bg.recycle();
 
         }
 
@@ -554,8 +558,8 @@ public class FlickrLiveWallpaper extends WallpaperService {
             }
 
             private void drawPreview() {
-                final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
-                .equals(Constants.Prefs.DISPLAY_FRAME);
+                final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY,
+                        Constants.Prefs.DISPLAY_FRAME).equals(Constants.Prefs.DISPLAY_FRAME);
                 if (FRAMED) {
                     drawFramePreview();
                 } else {
@@ -568,7 +572,7 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 drawNotificationLoading();
                 try {
                     final LocationManager locManager = (LocationManager)FlickrLiveWallpaper.this
-                    .getBaseContext().getSystemService(Context.LOCATION_SERVICE);
+                            .getBaseContext().getSystemService(Context.LOCATION_SERVICE);
                     location = geoNamesAPI.obtainLocation(locManager);
                 } catch (ConnectException e) {
                     location = null;
@@ -582,10 +586,15 @@ public class FlickrLiveWallpaper extends WallpaperService {
                 Log.i(TAG, "Finished Drawing Wallpaper");
             }
 
+            /*
+             * TODO: Currently the setWallpaper is bypassing the livewallpaper
+             * and simply setting the wallpaper. THis needs to be updated to the
+             * livewallpaper to take advantage of onClick()
+             */
             private void requestAndDrawImage() {
                 drawNotificationScaling(location.second);
-                final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY, Constants.Prefs.DISPLAY_FRAME)
-                        .equals(Constants.Prefs.DISPLAY_FRAME);
+                final boolean FRAMED = mPrefs.getString(Constants.Prefs.DISPLAY,
+                        Constants.Prefs.DISPLAY_FRAME).equals(Constants.Prefs.DISPLAY_FRAME);
                 final Bitmap image;
                 try {
                     image = requestImage(location.first, location.second);
@@ -641,15 +650,15 @@ public class FlickrLiveWallpaper extends WallpaperService {
         private boolean errorShown = false;
 
     }
-    
+
     private static float DISPLAY_X_CENTER;
 
     private static int DISPLAY_WIDTH;
-    
+
     private static int DISPLAY_HEIGHT;
-    
+
     private static boolean drawingWallpaper = false;
-    
+
     public static final String TAG = FlickrLiveWallpaper.class.getSimpleName();
 
 }
